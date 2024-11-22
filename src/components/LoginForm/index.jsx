@@ -1,26 +1,23 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../utils/firebaseConfig";
+import { useNavigate } from "react-router-dom";
 
-export function LoginForm({ onLogin }) {
+export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Suponha que a autenticação tenha sido bem-sucedida
+      // Autentica o usuário
       await signInWithEmailAndPassword(auth, email, password);
-
-      // Salvar o token no localStorage
-      localStorage.setItem("authToken", "seu-token-de-autenticacao");
-
-      // Redireciona para o dashboard
-      onLogin(); // Se necessário, altere isso para acionar algo no componente pai.
-      window.location.href = "/dashboard"; // Usar isso para forçar o redirecionamento
+      // Após autenticação bem-sucedida, navega para a lista de projetos
+      navigate("/projects");
     } catch (err) {
-      console.error(err); // Loga o erro completo
+      console.error("Erro ao autenticar:", err);
       setError("Erro ao fazer login. Verifique suas credenciais.");
     }
   };
