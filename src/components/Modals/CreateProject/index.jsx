@@ -4,6 +4,8 @@ import { db, storage } from "../../../utils/firebaseConfig"; // Importa configur
 import { collection, addDoc } from "firebase/firestore"; // Funções para manipular o Firestore (banco de dados)
 import { IoClose } from "react-icons/io5"; // Ícone de fechar
 import { FaSpinner } from "react-icons/fa"; // Ícone de carregamento (spinner)
+import Swal from "sweetalert2";
+import "../../../index.css";
 
 export function CreateProject({ closeModal, refreshProjects }) {
   // Definindo estados para título, descrição, arquivos, carregamento e progresso de upload
@@ -12,6 +14,23 @@ export function CreateProject({ closeModal, refreshProjects }) {
   const [files, setFiles] = useState([]); // Armazena os arquivos que serão enviados
   const [loading, setLoading] = useState(false); // Controla o estado de carregamento
   const [uploadProgress, setUploadProgress] = useState({}); // Progresso de upload de arquivos
+
+  // Configuração do Toast
+  const Toast = Swal.mixin({
+    toast: true,
+    position: "top-end",
+    iconColor: "white",
+    customClass: {
+      popup: "colored-toast",
+    },
+    showConfirmButton: false,
+    timer: 2000,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+      toast.onmouseenter = Swal.stopTimer;
+      toast.onmouseleave = Swal.resumeTimer;
+    },
+  });
 
   // Função para normalizar o título (remover caracteres especiais)
   const normalizeTitle = (title) => {
@@ -59,6 +78,11 @@ export function CreateProject({ closeModal, refreshProjects }) {
 
     setLoading(true); // Ativa o carregamento
     try {
+      Toast.fire({
+        icon: "success",
+        title: "Projeto adicionado com sucesso",
+      });
+      // Aguarda 2 segundos antes de executar as próximas ações
       const uploadedFiles = await handleFileUpload(); // Realiza o upload dos arquivos
       const newProject = { title, desc, files: uploadedFiles }; // Cria o objeto do novo projeto
 
@@ -75,6 +99,10 @@ export function CreateProject({ closeModal, refreshProjects }) {
       closeModal(); // Fecha o modal após adicionar o projeto
     } catch (error) {
       console.error("Erro ao adicionar projeto: ", error); // Exibe erro caso falhe
+      Toast.fire({
+        icon: "error",
+        title: "Erro ao adicionar projeto",
+      });
     } finally {
       setLoading(false); // Desativa o carregamento
     }

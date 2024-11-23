@@ -8,6 +8,7 @@ import { ref, deleteObject, listAll } from "firebase/storage";
 import Modal from "react-modal";
 import { CreateProject } from "../../components/Modals/CreateProject";
 import Swal from "sweetalert2";
+import "../../index.css";
 
 export function ProjectList() {
   const [modalIsOpen, setIsOpen] = useState(false);
@@ -34,6 +35,10 @@ export function ProjectList() {
   const Toast = Swal.mixin({
     toast: true,
     position: "top-end",
+    iconColor: "white",
+    customClass: {
+      popup: "colored-toast",
+    },
     showConfirmButton: false,
     timer: 2000,
     timerProgressBar: true,
@@ -74,6 +79,10 @@ export function ProjectList() {
   // Deletar projeto
   const handleDelete = async (id, projectTitle) => {
     try {
+      Toast.fire({
+        icon: "error",
+        title: "Projeto excluído com sucesso",
+      });
       await deleteDoc(doc(db, "projects", id));
       setProjects((prev) => prev.filter((project) => project.id !== id));
 
@@ -84,11 +93,6 @@ export function ProjectList() {
       for (const item of listResult.items) {
         await deleteObject(item);
       }
-
-      Toast.fire({
-        icon: "success",
-        title: "Projeto excluído com sucesso",
-      });
     } catch (error) {
       console.error("Erro ao excluir projeto: ", error);
       Toast.fire({
@@ -116,12 +120,38 @@ export function ProjectList() {
     });
   };
 
+  // Confirmação antes de deletar
+  const showConfirmationToLogout = () => {
+    Swal.fire({
+      title: "Sair",
+      text: "Você tem certeza que deseja sasir?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Sim",
+      cancelButtonText: "Não",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        handleLogout();
+      }
+    });
+  };
+
   // Logout do usuário
   const handleLogout = async () => {
     try {
-      await signOut(auth);
-      localStorage.removeItem("authToken");
-      navigate("/login");
+      Toast.fire({
+        icon: "error",
+        title: "Saindo...",
+      });
+
+      // Aguarda 2 segundos antes de executar as próximas ações
+      setTimeout(async () => {
+        await signOut(auth);
+        localStorage.removeItem("authToken");
+        navigate("/login");
+      }, 2000);
     } catch (error) {
       console.error("Erro ao deslogar: ", error);
     }
@@ -153,7 +183,7 @@ export function ProjectList() {
   }
 
   return (
-    <div className="p-6">
+    <div className="w-full min-h-screen bg-granito-pitaia p-6">
       <div className="flex justify-between mb-6">
         <button
           onClick={openModal}
@@ -162,14 +192,16 @@ export function ProjectList() {
           Adicionar Novo Projeto
         </button>
         <button
-          onClick={handleLogout}
+          onClick={showConfirmationToLogout}
           className="bg-red-600 text-white px-6 py-2 rounded-full shadow-lg hover:bg-red-700 transition duration-300 ease-in-out"
         >
           Sair
         </button>
       </div>
 
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">Lista de Projetos</h1>
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">
+        Lista de Projetos
+      </h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {projects.map((project) => (
           <Project
@@ -189,7 +221,10 @@ export function ProjectList() {
         shouldCloseOnOverlayClick={false}
         ariaHideApp={false}
       >
-        <CreateProject closeModal={closeModal} refreshProjects={refreshProjects} />
+        <CreateProject
+          closeModal={closeModal}
+          refreshProjects={refreshProjects}
+        />
       </Modal>
     </div>
   );

@@ -6,6 +6,9 @@ export default {
       fontFamily: {
         poppins: ["Poppins", "sans-serif"],
       },
+      backgroundImage: {
+        "granito-pitaia": "url('/src/assets/GRANITO_BRANCO_PITAYA.jpg')",
+      },
     },
   },
   plugins: [
